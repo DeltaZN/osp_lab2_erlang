@@ -1,33 +1,53 @@
 -module(shell_mode).
 -export([start_shell_mode/1]).
--import(fat32,[open_partition/1]). 
+-import(fat32,[open_partition/1, change_dir/1, read_dir/0]). 
 
 start_shell_mode([]) ->
     io:fwrite("Please, specify target volume~n");
 start_shell_mode(Args) ->
     [Volume|_] = Args,
     try 
-    	open_partition(Volume),
-    	io:fwrite("FAT32 supported.~n"),
-    	read_and_handle()
+    	X = open_partition(Volume),
+    	io:fwrite("FAT32 supported.~n")
     catch
     	_:_ -> io:fwrite("FAT32 not supported!~n")
+    after
+    	read_and_handle("/" ++ Volume ++ "/")
     end.
     
-read_and_handle() ->
-    {ok, [X]} = io:fread("shell> ", "~a"),
-    handle(X).
+read_and_handle(Path) ->
+    io:fwrite("~s", [Path]),
+    {ok, [X]} = io:fread("$ ", "~a"),
+    handle(X, Path).
 
-handle(N) ->
+handle(N, Path) ->
    case N of
-   	help -> help(), read_and_handle();
-   	cd -> io:fwrite("cd cmd~n"), read_and_handle();
-   	pwd -> io:fwrite("pwd cmd~n"), read_and_handle();
-   	ls -> io:fwrite("ls cmd~n"), read_and_handle();
-   	cp -> io:fwrite("cp cmd~n"), read_and_handle();
+   	help -> help(), read_and_handle(Path);
+   	cd -> 
+   		{ok, [X]} = io:fread("", "~a"), 
+   		read_and_handle(cd(X, Path));
+   	pwd -> io:fwrite("~s~n", [Path]), read_and_handle(Path);
+   	ls -> ls(), read_and_handle(Path);
+   	cp -> io:fwrite("cp cmd~n"), read_and_handle(Path);
    	exit -> io:fwrite("Terminating programm~n");
-   	_ -> io:fwrite("unkown cmd~n"), read_and_handle()
+   	_ -> io:fwrite("unkown cmd~n"), read_and_handle(Path)
    end.
+   
+ls() ->
+	read_dir().
+   
+cd(Arg, Path) -> 
+    try
+    	Arg_Str = atom_to_list(Arg),
+    	change_dir(Arg_Str),
+    	case Arg_Str of
+    		".." -> Path -- "/";
+    		"." -> Path;
+    		_ -> Path ++ Arg_Str ++ "/"
+    	end
+    catch
+    	_:_ -> io:fwrite("Directory not found.~n"), Path
+    end.
 
 help() ->
     io:fwrite("cd [arg] - change working directory\n"),
