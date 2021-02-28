@@ -1,7 +1,6 @@
 -module(list_mode).
 -export([start_list_mode/0]).
--import(lists, [all/2, any/2, filter/2, reverse/1, reverse/2,
-		foreach/2, map/2, member/2, sort/1]).
+-import(lists, [map/2,sort/1]).
 -import(string,[equal/2]). 
 -record(partition, {type, version}).
 
