@@ -1,5 +1,5 @@
 -module(fat32).
--export([open_partition/1, change_dir/1, read_dir/0]).
+-export([open_partition/1, change_dir/1, read_dir/0, cp/2]).
 -on_load(init/0).
 
 init() ->
@@ -12,4 +12,7 @@ change_dir(_X) ->
     exit(nif_library_not_loaded).
     
 read_dir() ->
+    exit(nif_library_not_loaded).
+    
+cp(_X, _Y) ->
     exit(nif_library_not_loaded).
